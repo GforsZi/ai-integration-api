@@ -1,33 +1,31 @@
 import {
-  Body,
   Controller,
   Get,
-  Header,
-  HttpCode,
-  Param,
   Post,
-  UseInterceptors,
+  Body,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiResponseHelper } from '../common/helpers/api-response.helper';
+import { UserService } from './user.service';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
+  constructor(private readonly userService: UserService) {}
+
   @Get()
-  @Header('Content-Type', 'application/json')
-  @HttpCode(200)
-  getData(): string {
-    return 'hallo';
-  }
-  @Get('/:id')
-  getDataById(@Param('id') id: string): string {
-    return `you search data by id: ${id}`;
+  @HttpCode(HttpStatus.OK)
+  async findAll() {
+    const users = await this.userService.findAll();
+
+    return ApiResponseHelper.success('Users retrieved successfully', users);
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor(''))
-  storeData(@Body('name') data: any): string {
-    console.log(data);
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() body: any) {
+    const user = await this.userService.create(body);
 
-    return `you store "${data}" as data`;
+    return ApiResponseHelper.success('User created successfully', user);
   }
 }
